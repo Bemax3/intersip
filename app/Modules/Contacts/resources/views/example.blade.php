@@ -1,0 +1,1 @@
+@lang('contacts::example.name') - @lang('contacts::example.slug')

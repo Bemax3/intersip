@@ -1,0 +1,1 @@
+@lang('authentication::example.name') - @lang('authentication::example.slug')
