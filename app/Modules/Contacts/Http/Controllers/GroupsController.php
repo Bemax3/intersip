@@ -3,6 +3,7 @@
 namespace App\Modules\Contacts\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Modules\Contacts\Http\Requests\GroupRequest;
 use App\Modules\Contacts\Models\Group;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -28,18 +29,11 @@ class GroupsController extends Controller
      * @param  \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(GroupRequest $request)
     {
-        $this->validate($request,[
-            'group_name' => ['required']
-        ]);
-
         try {
             DB::beginTransaction();
-            $request->user()->contactGroups()->create([
-                'group_name' => $request->group_name,
-                'group_description' => $request->group_description,
-            ]);
+            $request->user()->contactGroups()->create($request->all());
             DB::commit();
             return redirect()->back()->with('message',['body' => 'Group Created Successfully','type'=>'alert-success']);
         } catch (\Throwable $th) {
@@ -89,19 +83,16 @@ class GroupsController extends Controller
      * @param  \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request)
+    public function update(GroupRequest $request)
     {
         $this->validate($request,[
             'group_id' => ['required'],
-            'group_name' => ['required'],
         ]);
 
         try {
             DB::beginTransaction();
             $group = Group::find($request->group_id);
-            $group->group_name = $request->group_name;
-            $group->group_description = $request->group_description;
-            $group->save();
+            $group->update($request->all());
             DB::commit();
             return redirect()->back()->with('message',['body' => 'Group Updated Successfully','type'=>'alert-success']);
         } catch (\Throwable $th) {
