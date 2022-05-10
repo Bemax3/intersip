@@ -15,7 +15,6 @@ class PropertyResource extends JsonResource
     public function toArray($request)
     {
         return [
-            'id' => $this->id,
             'name' => $this->property_name,
             'value' => ""
         ];
