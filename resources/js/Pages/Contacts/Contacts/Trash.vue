@@ -22,7 +22,6 @@
                                 </span> -->
                                 <Link
                                     :href="route('contacts.list.contacts')"
-                                    :data="{ listId: listId }"
                                     class="btn btn-secondary d-none d-sm-inline-block"
                                 >
                                     <!-- Download SVG icon from http://tabler-icons.io/i/chevrons-left -->
@@ -110,7 +109,21 @@
                                         >
                                             <div class="d-flex">
                                                 <div class="text-muted">
-                                                    Showing 10 entries
+                                                    Show
+                                                    <div
+                                                        class="mx-2 d-inline-block"
+                                                    >
+                                                        <input
+                                                            type="text"
+                                                            class="form-control form-control-sm"
+                                                            v-model="
+                                                                perPageForm.amount
+                                                            "
+                                                            size="3"
+                                                            aria-label="Invoices count"
+                                                        />
+                                                    </div>
+                                                    entries
                                                 </div>
                                                 <div class="ms-auto text-muted">
                                                     Search:
@@ -757,7 +770,7 @@ export default {
     setup() {
         const contacts = computed(() => usePage().props.value.contacts);
         const properties = computed(() => usePage().props.value.properties);
-        const listId = computed(() => usePage().props.value.listId);
+        const amount = computed(() => usePage().props.value.pagination);
         const form = useForm({
             contacts: [],
             all: false,
@@ -765,13 +778,16 @@ export default {
         const searchForm = useForm({
             search: null,
         });
+        const perPageForm = useForm({
+            amount: amount.value,
+        });
         function lowercase(val) {
             return val.toLowerCase();
         }
         return {
             properties,
             contacts,
-            listId,
+            perPageForm,
             form,
             lowercase,
             searchForm,
@@ -802,6 +818,11 @@ export default {
                     })
                     .then((response) => (this.results = response.data))
                     .catch((error) => {});
+        },
+        "perPageForm.amount": function (val) {
+            if (val === "" || val.length < 2) {
+                this.contacts = computed(() => usePage().props.value.contacts);
+            } else window.location.href = "trash?amount=" + val;
         },
         "form.all": function (checked) {
             if (checked) {

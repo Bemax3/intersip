@@ -64,7 +64,6 @@
                                     :href="
                                         route('contacts.list.properties.trash')
                                     "
-                                    :data="{ list_id: listId }"
                                     class="btn btn-teal d-none d-sm-inline-block"
                                 >
                                     <!-- Download SVG icon from http://tabler-icons.io/i/plus -->
@@ -99,7 +98,6 @@
                                 </Link>
                                 <Link
                                     :href="route('contacts.list.contacts')"
-                                    :data="{ listId: listId }"
                                     class="btn btn-secondary d-none d-sm-inline-block"
                                 >
                                     <!-- Download SVG icon from http://tabler-icons.io/i/chevrons-left -->
@@ -320,7 +318,7 @@
                 </div>
             </div>
         </div>
-        <CreateModal :listId="listId" />
+        <CreateModal />
         <EditModal :property="updateModal.property" />
         <DeleteModal :id="deleteModal" :trash="true" />
     </app-content>
@@ -336,11 +334,8 @@ import AppContent from "../../AppContent.vue";
 export default {
     setup() {
         const properties = computed(() => usePage().props.value.properties);
-        const listId = computed(() => usePage().props.value.listId);
-
         return {
             properties,
-            listId,
         };
     },
     data() {

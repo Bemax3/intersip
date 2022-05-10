@@ -92,7 +92,6 @@
                                 <Link
                                     as="button"
                                     :href="route('contacts.list.properties')"
-                                    :data="{ listId: list.id }"
                                     class="btn btn-info d-none d-sm-inline-block"
                                 >
                                     <!-- Download SVG icon from http://tabler-icons.io/i/plus -->
@@ -162,7 +161,6 @@
                                     :href="
                                         route('contacts.list.contacts.trash')
                                     "
-                                    :data="{ list_id: list.id }"
                                     class="btn btn-teal d-none d-sm-inline-block"
                                 >
                                     <!-- Download SVG icon from http://tabler-icons.io/i/plus -->
@@ -775,7 +773,6 @@ import { usePage } from "@inertiajs/inertia-vue3";
 import axios from "axios";
 export default {
     setup() {
-        const list = computed(() => usePage().props.value.list);
         const contacts = computed(() => usePage().props.value.contacts);
         const countries = computed(() => usePage().props.value.countries);
         const properties = computed(() => usePage().props.value.properties);
@@ -794,7 +791,6 @@ export default {
             return val.toLowerCase();
         }
         return {
-            list,
             contacts,
             countries,
             properties,

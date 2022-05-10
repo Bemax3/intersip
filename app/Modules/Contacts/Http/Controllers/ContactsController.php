@@ -24,54 +24,25 @@ class ContactsController extends Controller
     public function index(Request $request)
     {   
        
-        if($request->session()->has('current_contact_list_id')) {
-            $listId = $request->session()->get('current_contact_list_id');
-            
-        }else {
-            $listId = $request->user()->lists()->first()->id;
-            $request->session()->put('current_contact_list_id',$listId);
-
+        if($request->session()->has('current_contact_list_id')) $list_id = $request->session()->get('current_contact_list_id');    
+        else {
+            $list_id = $request->user()->lists()->first()->id;
+            $request->session()->put('current_contact_list_id',$list_id);
         }
-        if(!ContactList::query()->where('id',$listId)->exists()) return redirect()->route('contacts.lists')->with('message',['body' => 'Error List Doesn\'t Exist','type'=>'alert-danger']);
-        
-        
-        
-        if(!$request->session()->has('pagination')) {
-            $pagination = 10;
-        }else {
-            
-            $pagination = $request->session()->get('pagination');
-        }
-        
-        if($request->has('amount')) {
-            $pagination = $request->amount;
-            $request->session()->put('pagination',$pagination);
-        } 
-        
+        if(!ContactList::query()->where('id',$list_id)->exists()) return redirect()->route('contacts.lists')->with('message',['body' => 'Error List Doesn\'t Exist','type'=>'alert-danger']); 
+        $pagination = $this->getPagination($request);
         return Inertia::render(
             'Contacts/Contacts/Contacts',
             [
-                'contacts' => Contact::query()->where('contact_list_id',$listId)->with('country')->with('properties')->paginate($pagination),
-                'list' => ContactList::query()->where('id',$listId)->first(),
+                'contacts' => Contact::query()->where('contact_list_id',$list_id)->with('country')->with('properties')->paginate($pagination),
                 'pagination' => $pagination,
                 'properties' => Property::query()
-                    ->where('contact_list_id',$listId)
+                    ->where('contact_list_id',$list_id)
                     ->where('property_showing',true)
                     ->get(),
                 'countries' => Country::all(),
             ]
         );
-    }
-
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
     }
 
     /**
@@ -88,13 +59,13 @@ class ContactsController extends Controller
 
         try {
             DB::beginTransaction();
-            $listId = $request->session()->get('current_contact_list_id');
+            $list_id = ListsController::getCurrentList($request);
             $code = $request->code;
             str_replace('+','',$code);
             $phone = $code . $request->number;
-            $phoneExist = Contact::query()->where('contact_list_id',$listId)->where('contact_phone_number',$phone)->first();
+            $phoneExist = Contact::query()->where('contact_list_id',$list_id)->where('contact_phone_number',$phone)->first();
             if(!$phoneExist) {   
-                $new_contact = ContactList::find($listId)->contacts()->create([
+                $new_contact = ContactList::find($list_id)->contacts()->create([
                     'country_id' => $request->country,
                     'contact_phone_number' => $phone
                 ]);
@@ -104,7 +75,7 @@ class ContactsController extends Controller
                 
                 $new_contact->save();
             } else {
-                $old_contact = Contact::query()->where('contact_list_id',$listId)->where('contact_phone_number',$phone)->first();
+                $old_contact = Contact::query()->where('contact_list_id',$list_id)->where('contact_phone_number',$phone)->first();
                 if(!$old_contact) return redirect()->route('contacts.list.contacts')->with('message',['body' => 'Contact Exists and is trashed !','type'=>'alert-danger']);
                 foreach ($request->fields as $key => $property) {
                     if(ContactProperty::query()->where('contact_id',$old_contact->id)->where('property_id',$property['id'])->exists())
@@ -129,16 +100,14 @@ class ContactsController extends Controller
      */
     public function showTrash(Request $request)
     {
-        if(!$request->session()->has("current_contact_list_id")) return redirect()->route('contacts.lists');
-        else {
-            $listId = $request->session()->get('current_contact_list_id');
-        }
+        $list_id = ListsController::getCurrentList($request);
+        $pagination = $this->getPagination($request);
         return Inertia::render(
             'Contacts/Contacts/Trash',
             [
-                'contacts' => Contact::query()->onlyTrashed()->where("contact_list_id",$listId)->with('country')->with('properties')->paginate(10),
-                'listId' =>$listId,
-                'properties' => Property::query()->where('contact_list_id',$listId)->where('property_showing',true)->whereHas('contacts',function(EloquentBuilder $query) {
+                'contacts' => Contact::query()->onlyTrashed()->where("contact_list_id",$list_id)->with('country')->with('properties')->paginate($pagination),
+                'pagination' => $pagination,
+                'properties' => Property::query()->where('contact_list_id',$list_id)->where('property_showing',true)->whereHas('contacts',function(EloquentBuilder $query) {
                     $query->where('contact_properties.value','!=',"NULL");})->get()
             ]
         );
@@ -153,18 +122,15 @@ class ContactsController extends Controller
      */
     public function search(Request $request)
     {
-        if(!$request->session()->has("current_contact_list_id")) return redirect()->route('contacts.lists');
-        else {
-            $listId = $request->session()->get('current_contact_list_id');
-        }
         try {
+            $list_id = ListsController::getCurrentList($request);
             $keywords = $request->keywords;
             $result = Contact::query()
             ->where('contact_phone_number','LIKE',"%{$keywords}%")
             ->orwhereHas('properties',function(EloquentBuilder $query) use ($keywords) {
                 $query->where('contact_properties.value','LIKE',"%{$keywords}%");
             })
-            ->where('contact_list_id',$listId)
+            ->where('contact_list_id',$list_id)
             ->with('country')
             ->with('properties')->get();
             return response()->json($result);
@@ -180,20 +146,18 @@ class ContactsController extends Controller
      */
     public function searchTrash(Request $request)
     {
-        if(!$request->session()->has("current_contact_list_id")) return redirect()->route('contacts.lists');
-        else {
-            $listId = $request->session()->get('current_contact_list_id');
-        }
+        
         try {
+            $list_id = ListsController::getCurrentList($request);
             $keywords = $request->keywords;
             $result = 
             Contact::query()
-            ->onlyTrashed()
-            ->where('contact_list_id',$listId)
+            ->where('contact_list_id',$list_id)
             ->where('contact_phone_number','LIKE',"%{$keywords}%")
-            // ->orwhereHas('properties',function(EloquentBuilder $query) use ($keywords) {
-            //     $query->where('contact_properties.value','LIKE',"%{$keywords}%");
-            // })
+            ->orwhereHas('properties',function(EloquentBuilder $query) use ($keywords) {
+                $query->where('contact_properties.value','LIKE',"%{$keywords}%");
+            })
+            ->onlyTrashed()
             ->with('country')
             ->with('properties')->get();
             return response()->json($result);
@@ -215,11 +179,8 @@ class ContactsController extends Controller
         try {
             DB::beginTransaction();
             $contact = Contact::query()->onlyTrashed()->find($request->contact_id);
-            if(!$request->session()->has("current_contact_list_id")) return redirect()->route('contacts.lists');
-            else {
-                $listId = $request->session()->get('current_contact_list_id');
-            }
-            if(Contact::query()->where('contact_phone_number',$contact->contact_phone_number)->where('contact_list_id',$listId)->exists()) {
+            $list_id = ListsController::getCurrentList($request);
+            if(Contact::query()->where('contact_phone_number',$contact->contact_phone_number)->where('contact_list_id',$list_id)->exists()) {
                 return redirect()->route('contacts.list.contacts')->with('message',['body' => 'Error While Restoring Contact: Number Already Exists','type'=>'alert-danger']); 
             }
             $contact->restore();
@@ -243,13 +204,10 @@ class ContactsController extends Controller
         ]);
         try {
             DB::beginTransaction();
-            if(!$request->session()->has("current_contact_list_id")) return redirect()->route('contacts.lists');
-            else {
-                $listId = $request->session()->get('current_contact_list_id');
-            }
+            $list_id = ListsController::getCurrentList($request);
             foreach ($request->contacts_ids as $key => $contact_id) {
                 $contact = Contact::query()->onlyTrashed()->find($contact_id);
-                if(Contact::query()->where('contact_phone_number',$contact->contact_phone_number)->where('contact_list_id',$listId)->exists()) {
+                if(Contact::query()->where('contact_phone_number',$contact->contact_phone_number)->where('contact_list_id',$list_id)->exists()) {
                     continue;
                 }
                 $contact->restore();
@@ -279,8 +237,8 @@ class ContactsController extends Controller
             $contact = Contact::find($request->contact_id);
             $phone = $request->code . $request->number;
             if($contact->contact_phone_number !== $phone) {
-                $listId = $request->session()->get('current_contact_list_id');
-                $phoneExist = Contact::query()->where('contact_list_id',$listId)->where('contact_phone_number',$phone)->first();
+                $list_id =ListsController::getCurrentList($request);
+                $phoneExist = Contact::query()->where('contact_list_id',$list_id)->where('contact_phone_number',$phone)->first();
                 if(!$phoneExist) {   
                     $contact->contact_phone_number = $phone;
                     $contact->country_id = $request->country;
@@ -390,12 +348,9 @@ class ContactsController extends Controller
             array_shift($fields);
             array_pop($fields);
             $new_fields = array();
-            if(!$request->session()->has("current_contact_list_id")) return redirect()->route('contacts.lists');
-            else {
-                $listId = $request->session()->get('current_contact_list_id');
-            }
+            $list_id = ListsController::getCurrentList($request);
             foreach ($fields as $key => $value) {
-                if(!Property::query()->where('property_name',$value)->where('contact_list_id',$listId)->exists()) {
+                if(!Property::query()->where('property_name',$value)->where('contact_list_id',$list_id)->exists()) {
                     array_push($new_fields,$value); 
                 }
             }
@@ -421,14 +376,14 @@ class ContactsController extends Controller
         }
     }
 
-    public function importPart2(Request $req) {
-        $this->validate($req,[
+    public function importPart2(Request $request) {
+        $this->validate($request,[
             "filepath" => ['required'],
         ]);
-        if(!$req->session()->has('current_contact_list_id')) {
+        if(!$request->session()->has('current_contact_list_id')) {
             return redirect()->route('contacts.lists')->with('message',['body' => 'Error: Session Expired, Choose Contact List','type'=>'alert-danger']);
         }
-        $contacts = (new FastExcel)->startRow(4)->import($req->filepath);
+        $contacts = (new FastExcel)->startRow(4)->import($request->filepath);
         $newContacts = array();
         for ($i=0; $i < count($contacts); $i++) { 
             $contact = (array)$contacts[$i]; 
@@ -448,17 +403,17 @@ class ContactsController extends Controller
             array_push($contacts,$newContact); 
         }
         
-        $new_fields = $req->fields;
+        $new_fields = $request->fields;
         try {
             DB::beginTransaction();
-            $listId = $req->session()->get('current_contact_list_id');
+            $list_id = ListsController::getCurrentList($request);
             if(count($new_fields) > 0) {
                 foreach ($new_fields as $key => $field) {
                     $newProp = Property::create([
                         'property_name' => $field,
-                        'contact_list_id' => $listId,
+                        'contact_list_id' => $list_id,
                     ]);
-                    $existing_contacts = Contact::query()->where('contact_list_id',$listId)->withTrashed()->get();
+                    $existing_contacts = Contact::query()->where('contact_list_id',$list_id)->withTrashed()->get();
                     foreach ($existing_contacts as $key => $contact) {
                         $contact->properties()->attach($newProp->id,['value'=> '']);
                     }
@@ -471,24 +426,24 @@ class ContactsController extends Controller
                 $phone = $contact[$keys[0]];
                 $phone = str_replace(" ","",$phone);
                 if(empty($phone)) return redirect()->back()->with('message',['body' => 'Error A contact is missing the Number!','type'=>'alert-danger']);             
-                $phoneExist = Contact::query()->where('contact_list_id',$listId)->where('contact_phone_number',$phone)->first();
+                $phoneExist = Contact::query()->where('contact_list_id',$list_id)->where('contact_phone_number',$phone)->first();
                 $country = $this->findCountry($phone);
                 if(!$phoneExist) {   
-                    $new_contact = ContactList::find($listId)->contacts()->create([
+                    $new_contact = ContactList::find($list_id)->contacts()->create([
                         'country_id' => $country->id,
                         'contact_phone_number' => $phone,
                     ]);
                     
                     for ($i=1; $i < count($keys); $i++) {
-                        $property = Property::query()->where('property_name',$keys[$i])->where('contact_list_id',$listId)->first();
+                        $property = Property::query()->where('property_name',$keys[$i])->where('contact_list_id',$list_id)->first();
                         $new_contact->properties()->attach($property->id,['value'=>$contact[$keys[$i]]]);
                     }
 
                     $new_contact->save();
                 }else {
-                    $old_contact = Contact::query()->where('contact_list_id',$listId)->where('contact_phone_number',$phone)->first();
+                    $old_contact = Contact::query()->where('contact_list_id',$list_id)->where('contact_phone_number',$phone)->first();
                     for ($i=1; $i < count($keys); $i++) {
-                        $property = Property::query()->where('property_name',$keys[$i])->where('contact_list_id',$listId)->first();
+                        $property = Property::query()->where('property_name',$keys[$i])->where('contact_list_id',$list_id)->first();
                         if(ContactProperty::query()->where('contact_id',$old_contact->id)->where('property_id',$property->id)->exists())
                             $old_contact->properties()->updateExistingPivot($property->id,['value'=>$contact[$keys[$i]]]);
                         else
@@ -523,4 +478,15 @@ class ContactsController extends Controller
         }
         return $country;
     }
+
+    public static function getPagination($request) {
+        if(!$request->session()->has('pagination')) $pagination = 10;
+        else $pagination = $request->session()->get('pagination');
+        if($request->has('amount')) {
+            $pagination = $request->amount;
+            $request->session()->put('pagination',$pagination);
+        } 
+        return $pagination;
+    }
+    
 }

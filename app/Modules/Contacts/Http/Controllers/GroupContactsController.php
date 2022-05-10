@@ -23,55 +23,26 @@ class GroupContactsController extends Controller
      */
     public function index(Request $request)
     {
-        if(!$request->has('group_id') & !$request->session()->has("current_contact_group_id")) return redirect()->route('contacts.list.groups');
-        if($request->has('group_id')) {
-            $group_id = $request->group_id;
-            $request->session()->put('current_contact_group_id',$group_id);
-        }else {
-            $group_id = $request->session()->get('current_contact_group_id');
-        }
+        if($request->has('group_id')) $request->session()->put('current_contact_group_id',$request->group_id);
+        
+        $group_id = GroupsController::getCurrentGroup($request);
         if(!Group::query()->where('id',$group_id)->exists()) return redirect()->route('contacts.list.groups')->with('message',['body' => 'Error Group Doesn\'t Exist','type'=>'alert-danger']);
+        $list_id = ListsController::getCurrentList($request);
+        if(!ContactList::query()->where('id',$list_id)->exists()) return redirect()->route('contacts.lists')->with('message',['body' => 'Error List Doesn\'t Exist','type'=>'alert-danger']);
         
-        if(!$request->session()->has("current_contact_list_id")) return redirect()->route('contacts.lists');
-        else {
-            $listId = $request->session()->get('current_contact_list_id');
-        }
-        if(!ContactList::query()->where('id',$listId)->exists()) return redirect()->route('contacts.lists')->with('message',['body' => 'Error List Doesn\'t Exist','type'=>'alert-danger']);
-        $group = Group::query()->where('id',$group_id)->first();
-           
-        if(!$request->session()->has('pagination')) {
-            $pagination = 10;
-        }else {
-            
-            $pagination = $request->session()->get('pagination');
-        }
-        
-        if($request->has('amount')) {
-            $pagination = $request->amount;
-            $request->session()->put('pagination',$pagination);
-        } 
+        $group = Group::query()->where('id',$group_id)->first();   
+        $pagination = ContactsController::getPagination($request);
         return Inertia::render('Contacts/Groups/Group/Group',
         [
             'contacts' => $group->contacts()->with('country')->paginate($pagination),
             'pagination' => $pagination,
-            'all' => Contact::query()->where('contact_list_id',$listId)->whereDoesntHave('groups',function(EloquentBuilder $query) use ($group_id) {
+            'all' => Contact::query()->where('contact_list_id',$list_id)->whereDoesntHave('groups',function(EloquentBuilder $query) use ($group_id) {
                 $query->where('group_id',$group_id);
             })->with('properties')->with('country')->get(),
             'group' => $group,
-            'properties' => Property::query()->where('contact_list_id',$listId)->where('property_showing',true)->whereHas('contacts',function(EloquentBuilder $query) {
-                $query->where('contact_properties.value','!=',"NULL");})->get(),
+            'properties' => Property::query()->where('contact_list_id',$list_id)->where('property_showing',true)->get(),
             'countries' => Country::all()
         ]);
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
     }
 
     /**
@@ -85,12 +56,7 @@ class GroupContactsController extends Controller
         $this->validate($request,[
             'contacts' => ['required','array']
         ]);
-        if($request->session()->has('current_contact_group_id')) {
-            $group_id = $request->session()->get('current_contact_group_id');
-        }else {
-            return redirect()->route('contacts.list.groups')->with('message',['body' => 'Error Group Doesn\'t Exist','type'=>'alert-danger']);
-        }
-
+        $group_id = GroupsController::getCurrentGroup($request);
         try {
             DB::beginTransaction();
             foreach ($request->contacts as $key => $contact_id) {
@@ -114,19 +80,13 @@ class GroupContactsController extends Controller
      */
     public function search(Request $request)
     {
-        if(!$request->session()->has("current_contact_list_id")) return redirect()->route('contacts.lists');
-        else {
-            $listId = $request->session()->get('current_contact_list_id');
-        }
-        if($request->session()->has('current_contact_group_id')) {
-            $group_id = $request->session()->get('current_contact_group_id');
-        }else {
-            return redirect()->route('contacts.list.groups')->with('message',['body' => 'Error Group Doesn\'t Exist','type'=>'alert-danger']);
-        }
+        
+        $list_id = ListsController::getCurrentList($request);
+        $group_id = GroupsController::getCurrentGroup($request);
         $keywords = $request->keywords;
         try {
             $result = Contact::query()
-            ->where('contact_list_id',$listId)
+            ->where('contact_list_id',$list_id)
             ->where('contact_phone_number','LIKE',"%{$keywords}%")
             ->orwhereHas('properties',function(EloquentBuilder $query) use ($keywords) {
                 $query->where('contact_properties.value','LIKE',"%{$keywords}%");
@@ -145,19 +105,13 @@ class GroupContactsController extends Controller
     }
     public function searchGroup(Request $request)
     {
-        if(!$request->session()->has("current_contact_list_id")) return redirect()->route('contacts.lists');
-        else {
-            $listId = $request->session()->get('current_contact_list_id');
-        }
-        if($request->session()->has('current_contact_group_id')) {
-            $group_id = $request->session()->get('current_contact_group_id');
-        }else {
-            return redirect()->route('contacts.list.groups')->with('message',['body' => 'Error Group Doesn\'t Exist','type'=>'alert-danger']);
-        }
-        $keywords = $request->keywords;
+        
+        $list_id = ListsController::getCurrentList($request);
+        $group_id = GroupsController::getCurrentGroup($request);
         try {
+            $keywords = $request->keywords;
             $result = Contact::query()
-            ->where('contact_list_id',$listId)
+            ->where('contact_list_id',$list_id)
             ->where('contact_phone_number','LIKE',"%{$keywords}%")
             ->orwhereHas('properties',function(EloquentBuilder $query) use ($keywords) {
                 $query->where('contact_properties.value','LIKE',"%{$keywords}%");
@@ -175,28 +129,6 @@ class GroupContactsController extends Controller
 
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(int $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request $request
-     * @param  int $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, int $id)
-    {
-        //
-    }
 
     /**
      * Remove the specified resource from storage.
@@ -209,12 +141,7 @@ class GroupContactsController extends Controller
         $this->validate($request,[
             'contact_id' => ['required']
         ]);
-        if($request->session()->has('current_contact_group_id')) {
-            $group_id = $request->session()->get('current_contact_group_id');
-        }else {
-            return redirect()->route('contacts.list.groups')->with('message',['body' => 'Error Group Doesn\'t Exist','type'=>'alert-danger']);
-        }
-
+        $group_id = GroupsController::getCurrentGroup($request);
         try {
             DB::beginTransaction();
             ContactGroup::query()->where('group_id',$group_id)->where('contact_id',$request->contact_id)->delete();
@@ -236,13 +163,7 @@ class GroupContactsController extends Controller
         $this->validate($request,[
             'contacts_ids' => ['required']
         ]);
-
-        if($request->session()->has('current_contact_group_id')) {
-            $group_id = $request->session()->get('current_contact_group_id');
-        }else {
-            return redirect()->route('contacts.list.groups')->with('message',['body' => 'Error Group Doesn\'t Exist','type'=>'alert-danger']);
-        }
-
+        $group_id = GroupsController::getCurrentGroup($request);
         try {
             DB::beginTransaction();
             foreach ($request->contacts_ids as $key => $contact_id) {

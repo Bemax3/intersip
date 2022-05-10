@@ -23,16 +23,6 @@ class GroupsController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request $request
@@ -56,7 +46,6 @@ class GroupsController extends Controller
             DB::rollBack();
             return redirect()->back()->with('message',['body' => 'Error While Creating Group','type'=>'alert-danger']);
         }
-        dd($request);
     }
 
     /**
@@ -110,10 +99,8 @@ class GroupsController extends Controller
         try {
             DB::beginTransaction();
             $group = Group::find($request->group_id);
-
             $group->group_name = $request->group_name;
             $group->group_description = $request->group_description;
-
             $group->save();
             DB::commit();
             return redirect()->back()->with('message',['body' => 'Group Updated Successfully','type'=>'alert-success']);
@@ -146,5 +133,10 @@ class GroupsController extends Controller
             return redirect()->back()->with('message',['body' => 'Error While Trashing Group ','type'=>'alert-error']);
         }
 
+    }
+
+    public static function getCurrentGroup($request) {
+        if(!$request->session()->has('current_contact_group_id')) return redirect()->route('contacts.list.groups')->with('message',['body' => 'Error Group Doesn\'t Exist','type'=>'alert-danger']);
+        return $request->session()->get('current_contact_group_id');
     }
 }

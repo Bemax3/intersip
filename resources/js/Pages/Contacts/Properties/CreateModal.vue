@@ -133,20 +133,17 @@
 import { useForm } from "@inertiajs/inertia-vue3";
 export default {
     name: "CreateModal",
-    props: {
-        listId: Number,
-    },
+    props: {},
     data() {
         return {
             csrfToken: null,
         };
     },
-    setup(props) {
+    setup() {
         const form = useForm({
             property_name: null,
             property_description: null,
             property_showing: true,
-            contact_list_id: props.listId,
         });
 
         return { form };

@@ -18,27 +18,13 @@ class PropertiesController extends Controller
      */
     public function index(Request $request)
     {
-        if(!$request->session()->has("current_contact_list_id")) return redirect()->route('contacts.lists');
-        else {
-            $listId = $request->session()->get('current_contact_list_id');
-        }
+        $list_id = ListsController::getCurrentList($request);    
         return Inertia::render(
             'Contacts/Properties/ContactProperties',
             [
-                'properties' => Property::query()->where("contact_list_id",$listId)->get(),
-                'listId' =>$listId,
+                'properties' => Property::query()->where("contact_list_id",$list_id)->get(),
             ]
         );
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
     }
 
     /**
@@ -51,28 +37,25 @@ class PropertiesController extends Controller
     {
         $this->validate($request,[
             'property_name' => ['required']
-        ]);
-        if(!$request->session()->has("current_contact_list_id")) return redirect()->route('contacts.lists');
-        else {
-            $listId = $request->session()->get('current_contact_list_id');
-        }
+        ]);   
+        $list_id = ListsController::getCurrentList($request);
         try {
             DB::beginTransaction();
             $newProp = Property::create([
                 'property_name' => $request->property_name,
                 'property_description' => $request->property_description,
                 'property_showing' => $request->property_showing,
-                'contact_list_id' => $request->contact_list_id,
+                'contact_list_id' => $list_id,
             ]);
-            $existing_contacts = Contact::query()->where('contact_list_id',$listId)->withTrashed()->get();
-                    foreach ($existing_contacts as $key => $contact) {
-                        $contact->properties()->attach($newProp->id,['value'=> '']);
-                    }
+            $existing_contacts = Contact::query()->where('contact_list_id',$list_id)->withTrashed()->get();
+            foreach ($existing_contacts as $key => $contact) {
+                $contact->properties()->attach($newProp->id,['value'=> '']);
+            }
             DB::commit();
-            return redirect()->route('contacts.list.properties',$listId)->with('message',['body' => 'Property Created Successfully','type'=>'alert-success']);
+            return redirect()->route('contacts.list.properties',$list_id)->with('message',['body' => 'Property Created Successfully','type'=>'alert-success']);
         } catch (\Throwable $th) {
             DB::rollBack();
-            return redirect()->route('contacts.list.properties',$listId)->with('message',['body' => 'Error While Creating Property','type'=>'alert-danger']);
+            return redirect()->route('contacts.list.properties',$list_id)->with('message',['body' => 'Error While Creating Property','type'=>'alert-danger']);
         }
 
 
@@ -85,15 +68,12 @@ class PropertiesController extends Controller
      */
     public function showTrash(Request $request)
     {
-        if(!$request->session()->has("current_contact_list_id")) return redirect()->route('contacts.lists');
-        else {
-            $listId = $request->session()->get('current_contact_list_id');
-        }
+        
+        $list_id = ListsController::getCurrentList($request);
         return Inertia::render(
             'Contacts/Properties/Trash',
             [
-                'properties' => Property::query()->onlyTrashed()->where("contact_list_id",$listId)->get(),
-                'listId' => $listId,
+                'properties' => Property::query()->onlyTrashed()->where("contact_list_id",$list_id)->get(),
             ]
         );
     }
@@ -108,18 +88,15 @@ class PropertiesController extends Controller
         $this->validate($request,[
             'property_id' => ['required']
         ]);
-        if(!$request->session()->has("current_contact_list_id")) return redirect()->route('contacts.lists');
-        else {
-            $listId = $request->session()->get('current_contact_list_id');
-        }
+        $list_id = ListsController::getCurrentList($request);
         try {
             DB::beginTransaction();
             Property::query()->onlyTrashed()->find($request->property_id)->restore();
             DB::commit();
-            return redirect()->route('contacts.list.properties',$listId)->with('message',['body' => 'Property Restored Successfully','type'=>'alert-success']);
+            return redirect()->route('contacts.list.properties',$list_id)->with('message',['body' => 'Property Restored Successfully','type'=>'alert-success']);
         } catch (\Throwable $th) {
             DB::rollBack();
-            return redirect()->route('contacts.list.properties',$listId)->with('message',['body' => 'Error While Restoring Property','type'=>'alert-danger']); 
+            return redirect()->route('contacts.list.properties',$list_id)->with('message',['body' => 'Error While Restoring Property','type'=>'alert-danger']); 
         }
     }
 
@@ -135,10 +112,7 @@ class PropertiesController extends Controller
             'property_name' => ['required'],
             'property_id' => ['required']
         ]);
-        if(!$request->session()->has("current_contact_list_id")) return redirect()->route('contacts.lists');
-        else {
-            $listId = $request->session()->get('current_contact_list_id');
-        }
+        $list_id = ListsController::getCurrentList($request);
         try {
             DB::beginTransaction();
             $property = Property::find($request->property_id);
@@ -147,10 +121,10 @@ class PropertiesController extends Controller
             $property->property_showing = $request->property_showing;
             $property->save();
             DB::commit();
-            return redirect()->route('contacts.list.properties',$listId)->with('message',['body' => 'Property Updated Successfully','type'=>'alert-success']);
+            return redirect()->route('contacts.list.properties',$list_id)->with('message',['body' => 'Property Updated Successfully','type'=>'alert-success']);
         } catch (\Throwable $th) {
             DB::rollBack();
-            return redirect()->route('contacts.list.properties',$listId)->with('message',['body' => 'Error While Updating Property','type'=>'alert-danger']); 
+            return redirect()->route('contacts.list.properties',$list_id)->with('message',['body' => 'Error While Updating Property','type'=>'alert-danger']); 
         }
 
     }

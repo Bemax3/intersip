@@ -89,4 +89,11 @@ class ListsController extends Controller
     {
         //
     }
+
+    public static function getCurrentList($request) {
+        if(!$request->session()->has("current_contact_list_id")) return redirect()->route('contacts.lists');
+        else {
+            return $request->session()->get('current_contact_list_id');
+        }
+    }
 }

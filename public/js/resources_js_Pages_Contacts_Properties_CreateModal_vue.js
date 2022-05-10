@@ -15,20 +15,17 @@ __webpack_require__.r(__webpack_exports__);
 
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
   name: "CreateModal",
-  props: {
-    listId: Number
-  },
+  props: {},
   data: function data() {
     return {
       csrfToken: null
     };
   },
-  setup: function setup(props) {
+  setup: function setup() {
     var form = (0,_inertiajs_inertia_vue3__WEBPACK_IMPORTED_MODULE_0__.useForm)({
       property_name: null,
       property_description: null,
-      property_showing: true,
-      contact_list_id: props.listId
+      property_showing: true
     });
     return {
       form: form
