@@ -16,7 +16,8 @@ class CountriesResource extends JsonResource
     {
         return [
             'name' => $this->settings_country_short_name,
-            'calling_code' => $this->settings_country_calling_code 
+            'calling_code' => $this->settings_country_calling_code,
+            'iso2' => $this->settings_country_iso2
         ];
     }
 }

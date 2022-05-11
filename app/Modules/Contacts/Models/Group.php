@@ -19,7 +19,8 @@ class Group extends Model
      */
     protected $fillable = [
         'group_name',
-        'group_description'
+        'group_description',
+        'created_by'
     ];
 
     public function contacts() {

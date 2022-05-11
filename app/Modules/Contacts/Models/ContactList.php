@@ -14,7 +14,10 @@ class ContactList extends Model
      *
      * @var array
      */
-    protected $fillable = [];
+    protected $fillable = [
+        'contact_list_name',
+        'contact_list_description'
+    ];
 
     public function contacts() {
         return $this->hasMany(Contact::class);

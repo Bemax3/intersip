@@ -20,8 +20,10 @@ return new class extends Migration
             $table->string('contact_phone_number');
             $table->foreignIdFor(ContactList::class)->constrained();
             $table->foreignIdFor(Country::class)->constrained();
+            $table->bigInteger('created_by')->unsigned();
             $table->softDeletes();
             $table->timestamps();
+            $table->foreign('created_by')->references('id')->on('users')->onDelete('cascade');
         });
     }
 

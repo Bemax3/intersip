@@ -67,7 +67,8 @@ class ContactsController extends Controller
             if(!$phoneExist) {   
                 $new_contact = ContactList::find($list_id)->contacts()->create([
                     'country_id' => $request->country,
-                    'contact_phone_number' => $phone
+                    'contact_phone_number' => $phone,
+                    'created_by' => $request->user()->id
                 ]);
                 foreach ($request->fields as $key => $property) {
                     $new_contact->properties()->attach($property['id'],['value'=>$property['deleted_at']]);
@@ -412,6 +413,7 @@ class ContactsController extends Controller
                     $newProp = Property::create([
                         'property_name' => $field,
                         'contact_list_id' => $list_id,
+                        'created_by' => $request->user()->id
                     ]);
                     $existing_contacts = Contact::query()->where('contact_list_id',$list_id)->withTrashed()->get();
                     foreach ($existing_contacts as $key => $contact) {
@@ -432,6 +434,7 @@ class ContactsController extends Controller
                     $new_contact = ContactList::find($list_id)->contacts()->create([
                         'country_id' => $country->id,
                         'contact_phone_number' => $phone,
+                        'created_by' => $request->user()->id
                     ]);
                     
                     for ($i=1; $i < count($keys); $i++) {
@@ -457,6 +460,7 @@ class ContactsController extends Controller
             return redirect()->route('contacts.list.contacts')->with('message', ['body' => 'Imported Contacts Successfully !','type'=>'alert-success']);
         } catch (\Exception $e) {
             DB::rollBack();
+            dd($e);
             return redirect()->route('contacts.list.contacts')->with('message',['body' => 'Error: Make sure Phone Numbers respect the right format !','type'=>'alert-danger']);
         }
         

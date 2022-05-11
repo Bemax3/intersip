@@ -20,8 +20,10 @@ return new class extends Migration
             $table->string('property_name');
             $table->string('property_description')->nullable();
             $table->boolean('property_showing')->default(true);
+            $table->bigInteger('created_by')->unsigned();
             $table->softDeletes();
             $table->timestamps();
+            $table->foreign('created_by')->references('id')->on('users')->onDelete('cascade');
         });
     }
 

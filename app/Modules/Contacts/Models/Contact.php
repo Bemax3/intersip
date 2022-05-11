@@ -21,7 +21,8 @@ class Contact extends Model
     protected $fillable = [
         'contact_list_id',
         'contact_phone_number',
-        'country_id'
+        'country_id',
+        'created_by'
     ];
 
     public function list() {

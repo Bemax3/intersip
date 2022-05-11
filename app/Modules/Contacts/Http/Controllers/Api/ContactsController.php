@@ -2,17 +2,17 @@
 
 namespace App\Modules\Contacts\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Modules\Contacts\Http\Resources\ContactsResource;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Cache;
 use App\Modules\Contacts\Models\Contact;
+use App\Modules\Contacts\Models\Property;
 use App\Modules\Contacts\Models\ContactList;
 use App\Modules\Contacts\Models\ContactProperty;
-use App\Modules\Contacts\Models\Property;
+use App\Modules\Contacts\Http\Resources\ContactsResource;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 
 class ContactsController extends Controller
 {
@@ -117,21 +117,22 @@ class ContactsController extends Controller
             return response('Error :' . $th,400);
         }
     }
-    public function destroy($contact){
-                
+    public function destroy(Request $request,$user){
+        $data = json_decode($request->getContent());        
         try {
             DB::beginTransaction();
-            $contact = Contact::find($contact);
-            if($contact) {
-                $contact->delete();
-            }else {
-                return response('Contact Not Found',400);
-            }
+            $user = User::findOrFail($user);
+            $listId = $user->lists()->first()->id;
+            if(!array_key_exists('number',(array)$data)) return response('Number is required',400);
+            $phone = $data->number;
+            $contact = Contact::query()->where('contact_phone_number',$phone)->where('contact_list_id',$listId)->first();
+            if($contact) $contact->delete();
+            else return response('Contact Not Found',400);
             DB::commit();
             return response('Deleted',200);
         } catch (\Throwable $th) {
             DB::rollBack();
-            return response('Error While Deleting',400);
+            return response('Error While Deleting : '. $th,400);
         }
     }
 

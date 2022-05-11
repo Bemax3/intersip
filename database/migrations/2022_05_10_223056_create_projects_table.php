@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\SettingsProduct;
 use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -14,15 +15,16 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('groups', function (Blueprint $table) {
+        Schema::create('projects', function (Blueprint $table) {
             $table->id();
-            $table->string('group_name');
-            $table->string('group_description')->nullable();
+            $table->string('project_name');
+            $table->string('project_desc')->nullable();
             $table->bigInteger('created_by')->unsigned();
-            $table->foreignIdFor(User::class)->constrained();
-            $table->softDeletes();
-            $table->timestamps();
             $table->foreign('created_by')->references('id')->on('users')->onDelete('cascade');
+            $table->foreignIdFor(User::class)->constrained()->onDelete('cascade');
+            $table->foreignIdFor(SettingsProduct::class)->constrained()->onDelete('cascade');
+            $table->unique(['user_id','settings_product_id']);
+            $table->timestamps();
         });
     }
 
@@ -33,6 +35,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('groups');
+        Schema::dropIfExists('projects');
     }
 };

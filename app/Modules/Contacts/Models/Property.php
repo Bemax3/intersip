@@ -21,6 +21,7 @@ class Property extends Model
         "property_description",
         "property_showing",
         "contact_list_id",
+        "created_by"
     ];
 
     public function contacts() {

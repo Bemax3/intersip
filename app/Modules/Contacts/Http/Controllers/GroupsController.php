@@ -33,7 +33,7 @@ class GroupsController extends Controller
     {
         try {
             DB::beginTransaction();
-            $request->user()->contactGroups()->create($request->all());
+            $request->user()->contactGroups()->create(array_merge($request->validated(),['created_by' => $request->user()->id]));
             DB::commit();
             return redirect()->back()->with('message',['body' => 'Group Created Successfully','type'=>'alert-success']);
         } catch (\Throwable $th) {
@@ -92,7 +92,7 @@ class GroupsController extends Controller
         try {
             DB::beginTransaction();
             $group = Group::find($request->group_id);
-            $group->update($request->all());
+            $group->update($request->validated());
             DB::commit();
             return redirect()->back()->with('message',['body' => 'Group Updated Successfully','type'=>'alert-success']);
         } catch (\Throwable $th) {

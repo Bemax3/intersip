@@ -703,7 +703,12 @@
                                     Try Creating New Contacts or Import Some !
                                 </p>
                                 <div class="empty-action">
-                                    <a href="./." class="btn btn-primary">
+                                    <a
+                                        href="#"
+                                        class="btn btn-primary"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modal-create-contact"
+                                    >
                                         <!-- Download SVG icon from http://tabler-icons.io/i/plus -->
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"

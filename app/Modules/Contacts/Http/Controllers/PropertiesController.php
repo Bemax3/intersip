@@ -46,6 +46,7 @@ class PropertiesController extends Controller
                 'property_description' => $request->property_description,
                 'property_showing' => $request->property_showing,
                 'contact_list_id' => $list_id,
+                'created_by' => $request->user()->id
             ]);
             $existing_contacts = Contact::query()->where('contact_list_id',$list_id)->withTrashed()->get();
             foreach ($existing_contacts as $key => $contact) {
