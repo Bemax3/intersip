@@ -43,6 +43,21 @@ class ContactsController extends Controller
                 ->get()
         );
     }
+    public function searchForUser(Request $request,$user) {
+        $data = json_decode($request->getContent());
+        if(array_key_exists('keywords',(array)$data)) $keywords = $data->keywords;
+        else return response('Keywords missing in request body');
+        $list_id = User::findOrFail($user)->lists()->first()->id;
+        return ContactsResource::collection(
+            Contact::query()
+                ->where('contact_phone_number','LIKE',"%{$keywords}%")
+                ->orwhereHas('properties',function(EloquentBuilder $query) use ($keywords) {
+                    $query->where('contact_properties.value','LIKE',"%{$keywords}%");
+                })
+                ->where('contact_list_id',$list_id)
+                ->get()
+        );
+    }
     
     public function getContactsOfUser($id) {
         $list = User::findOrFail($id)->lists()->first();
@@ -62,7 +77,8 @@ class ContactsController extends Controller
             if(!$phoneExist) {   
                 $new_contact = ContactList::find($listId)->contacts()->create([
                     'country_id' => $user->country_id,
-                    'contact_phone_number' => $phone
+                    'contact_phone_number' => $phone,
+                    'created_by' => $user
                 ]);
                 if(array_key_exists('props',(array)$data))
                     foreach ($data->props as $key => $property) {

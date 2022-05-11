@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('',[ContactsController::class,'getContacts']);
 Route::get('/{id}',[ContactsController::class,'getContactById']);
 Route::get('/search/{keywords}',[ContactsController::class,'search']);
+Route::post('/search/{userId}',[ContactsController::class,'searchForUser']);
 Route::get('/ofuser/{id}',[ContactsController::class,'getContactsOfUser']);
 Route::post('/store/{userId}',[ContactsController::class,'store']);
 Route::post('/update/{userId}',[ContactsController::class,'update']);
