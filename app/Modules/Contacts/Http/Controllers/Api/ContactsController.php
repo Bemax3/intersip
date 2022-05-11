@@ -13,6 +13,8 @@ use App\Modules\Contacts\Models\ContactList;
 use App\Modules\Contacts\Models\ContactProperty;
 use App\Modules\Contacts\Http\Resources\ContactsResource;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
+use Illuminate\Support\Facades\Auth;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class ContactsController extends Controller
 {
@@ -43,18 +45,20 @@ class ContactsController extends Controller
                 ->get()
         );
     }
-    public function searchForUser(Request $request,$user) {
+    public function searchForUser(Request $request,$user=null) {
+        if(!$user) $user_id = Auth::user()->id;
+        else $user_id = $user;
         $data = json_decode($request->getContent());
         if(array_key_exists('keywords',(array)$data)) $keywords = $data->keywords;
         else return response('Keywords missing in request body');
-        $list_id = User::findOrFail($user)->lists()->first()->id;
+        $list_id = User::findOrFail($user_id)->lists()->first()->id;
         return ContactsResource::collection(
             Contact::query()
-                ->where('contact_phone_number','LIKE',"%{$keywords}%")
-                ->orwhereHas('properties',function(EloquentBuilder $query) use ($keywords) {
-                    $query->where('contact_properties.value','LIKE',"%{$keywords}%");
-                })
-                ->where('contact_list_id',$list_id)
+            ->where('contact_list_id',$list_id)
+            ->where('contact_phone_number','LIKE',"%{$keywords}%")
+            ->orwhereHas('properties',function(EloquentBuilder $query) use ($keywords) {
+                $query->where('contact_properties.value','LIKE',"%{$keywords}%");
+            })
                 ->get()
         );
     }
@@ -64,35 +68,37 @@ class ContactsController extends Controller
         return ContactsResource::collection(Contact::query()->where('contact_list_id',$list->id)->get());
     }
 
-    public function store(Request $request,$user) {
-        
+    public function store(Request $request,$user=null) {
+        if(!$user) $user_id = Auth::user()->id;
+        else $user_id = $user;
+        $created_by = Auth::user()->id;
         $data = json_decode($request->getContent());
         try {
             DB::beginTransaction();
-            $user = User::findOrFail($user);
-            $listId = $user->lists()->first()->id;
+            $user = User::findOrFail($user_id);
+            $list_id = $user->lists()->first()->id;
             if(!$data->number) return response('Phone Number can\'t be Empty');
             $phone = $data->number;
-            $phoneExist = Contact::query()->where('contact_list_id',$listId)->where('contact_phone_number',$phone)->first();
+            $phoneExist = Contact::query()->where('contact_list_id',$list_id)->where('contact_phone_number',$phone)->first();
             if(!$phoneExist) {   
-                $new_contact = ContactList::find($listId)->contacts()->create([
+                $new_contact = ContactList::find($list_id)->contacts()->create([
                     'country_id' => $user->country_id,
                     'contact_phone_number' => $phone,
-                    'created_by' => $user
+                    'created_by' => $created_by
                 ]);
                 if(array_key_exists('props',(array)$data))
                     foreach ($data->props as $key => $property) {
-                        $prop = Property::query()->where('contact_list_id',$listId)->whereRaw('lower(property_name) like (?)',strtolower($property->name))->first();
+                        $prop = Property::query()->where('contact_list_id',$list_id)->whereRaw('lower(property_name) like (?)',strtolower($property->name))->first();
                         $new_contact->properties()->attach($prop->id,['value'=>$property->value]);
                     }
                 $new_contact->save();
                 DB::commit();
                 return response($new_contact,200);
             } else {
-                $old_contact = Contact::query()->where('contact_list_id',$listId)->where('contact_phone_number',$phone)->first();
+                $old_contact = Contact::query()->where('contact_list_id',$list_id)->where('contact_phone_number',$phone)->first();
                 if(array_key_exists('props',(array)$data))
                     foreach ($data->props as $key => $property) {
-                        $prop = Property::query()->where('contact_list_id',$listId)->whereRaw('lower(property_name) like (?)',strtolower($property->name))->first();
+                        $prop = Property::query()->where('contact_list_id',$list_id)->whereRaw('lower(property_name) like (?)',strtolower($property->name))->first();
                         $contact_props = ContactProperty::query()->where('contact_id',$old_contact->id)->where('property_id',$prop->id)->first();
                         if($contact_props) $old_contact->properties()->updateExistingPivot($prop->id,['value'=>$property->value]);
                         else $old_contact->properties()->attach($prop->id,['value'=>$property->value]);
@@ -101,25 +107,27 @@ class ContactsController extends Controller
                 return response($old_contact,200);
             }
         } catch (\Exception $th) {
-            return response('Error :'. $th,400);
+            return response('Error : Using Wrong Property Names ',400);
             DB::rollBack();
         }
     }
 
-    public function update(Request $request,$user) {
+    public function update(Request $request,$user=null) {
         $data = json_decode($request->getContent());
         if(!$data->number) return response('Phone Number can\'t be Empty');
         try {
             DB::beginTransaction();
-            $user = User::findOrFail($user);
-            $listId = $user->lists()->first()->id;
+            if(!$user) $user_id = Auth::user()->id;
+            else $user_id = $user;
+            $user = User::findOrFail($user_id);
+            $list_id = $user->lists()->first()->id;
             $phone = $data->number;
-            $contact = Contact::query()->where('contact_phone_number',$phone)->where('contact_list_id',$listId)->first();
+            $contact = Contact::query()->where('contact_phone_number',$phone)->where('contact_list_id',$list_id)->first();
             if(!$contact) return response('Contact Not Found !',400);
             if(array_key_exists('props',(array)$data))
                 foreach ($data->props as $key => $property) {
                     if($property->value !== "") {
-                        $prop = Property::query()->where('contact_list_id',$listId)->whereRaw('lower(property_name) like (?)',strtolower($property->name))->first();
+                        $prop = Property::query()->where('contact_list_id',$list_id)->whereRaw('lower(property_name) like (?)',strtolower($property->name))->first();
                         $contact_props = ContactProperty::query()->where('contact_id',$contact->id)->where('property_id',$prop->id)->first();
                         if($contact_props) $contact->properties()->updateExistingPivot($prop->id,['value'=>$property->value]);
                         else $contact->properties()->attach($prop->id,['value'=>$property->value]);
@@ -133,15 +141,17 @@ class ContactsController extends Controller
             return response('Error :' . $th,400);
         }
     }
-    public function destroy(Request $request,$user){
+    public function destroy(Request $request,$user=null){
         $data = json_decode($request->getContent());        
         try {
             DB::beginTransaction();
-            $user = User::findOrFail($user);
-            $listId = $user->lists()->first()->id;
+            if(!$user) $user_id = Auth::user()->id;
+            else $user_id = $user;
+            $user = User::findOrFail($user_id);
+            $list_id = $user->lists()->first()->id;
             if(!array_key_exists('number',(array)$data)) return response('Number is required',400);
             $phone = $data->number;
-            $contact = Contact::query()->where('contact_phone_number',$phone)->where('contact_list_id',$listId)->first();
+            $contact = Contact::query()->where('contact_phone_number',$phone)->where('contact_list_id',$list_id)->first();
             if($contact) $contact->delete();
             else return response('Contact Not Found',400);
             DB::commit();

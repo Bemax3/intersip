@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Modules\Contacts\Models\Contact;
+
 use App\Modules\Contacts\Models\ContactList;
 use App\Modules\Contacts\Models\Group;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
