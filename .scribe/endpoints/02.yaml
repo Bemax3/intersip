@@ -18,7 +18,7 @@ endpoints:
         name: id
         description: 'The ID of the ofuser.'
         required: true
-        example: perferendis
+        example: voluptas
         type: string
         custom: []
     queryParameters: []
@@ -28,7 +28,7 @@ endpoints:
         status: 404
         content: |-
           {
-              "message": "No query results for model [App\\Models\\User] perferendis",
+              "message": "No query results for model [App\\Models\\User] voluptas",
               "exception": "Symfony\\Component\\HttpKernel\\Exception\\NotFoundHttpException",
               "file": "/Users/bemax/dev/inter-sip/vendor/laravel/framework/src/Illuminate/Foundation/Exceptions/Handler.php",
               "line": 378,

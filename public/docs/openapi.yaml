@@ -239,7 +239,7 @@ paths:
         in: path
         name: id
         description: 'The ID of the contact.'
-        example: saepe
+        example: exercitationem
         required: true
         schema:
           type: string
@@ -295,7 +295,7 @@ paths:
         in: path
         name: keywords
         description: ''
-        example: distinctio
+        example: saepe
         required: true
         schema:
           type: string
@@ -377,7 +377,7 @@ paths:
             value: ''
           present:
             summary: 'When the value is present'
-            value: aliquid
+            value: aut
   '/api/contacts/store/{userId}':
     post:
       summary: 'Create Contact for user'
@@ -433,7 +433,7 @@ paths:
                 props:
                   type: json
                   description: 'optional Props of the user.'
-                  example: soluta
+                  example: sequi
               required:
                 - number
     parameters:
@@ -450,10 +450,10 @@ paths:
             value: ''
           present:
             summary: 'When the value is present'
-            value: autem
+            value: in
   '/api/contacts/update/{userId}':
     post:
-      summary: ''
+      summary: 'Update Contact for user'
       description: ''
       parameters:
         -
@@ -470,10 +470,45 @@ paths:
           example: application/json
           schema:
             type: string
-      responses: {  }
+      responses:
+        200:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "{\n {\n     \"country_id\": country_id,\n     \"contact_phone_number\": \"phone\",\n     \"created_by\": user_id,\n     \"contact_list_id\": list_id,\n     \"updated_at\": \"2022-05-11T22:13:28.000000Z\",\n     \"created_at\": \"2022-05-11T22:13:28.000000Z\",\n     \"id\": id\n}\n}"
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Using Wrong Property Names.'
+                properties:
+                  message:
+                    type: string
+                    example: 'Using Wrong Property Names.'
       tags:
         - 'Contacts '
-      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                number:
+                  type: string
+                  description: 'Number to update.'
+                  example: '1001'
+                props:
+                  type: json
+                  description: 'optional Props of the user.'
+                  example: minima
+              required:
+                - number
     parameters:
       -
         in: path
@@ -488,7 +523,7 @@ paths:
             value: ''
           present:
             summary: 'When the value is present'
-            value: et
+            value: adipisci
   '/api/contacts/delete/{userId}':
     post:
       summary: 'Delete Contact for user'
@@ -550,7 +585,7 @@ paths:
             value: ''
           present:
             summary: 'When the value is present'
-            value: ea
+            value: qui
   '/api/contacts/ofuser/{userId}':
     get:
       summary: 'Get All Contacts of a user'
@@ -616,7 +651,7 @@ paths:
             value: ''
           present:
             summary: 'When the value is present'
-            value: ullam
+            value: voluptatem
   '/api/contacts/properties/ofuser/{id}':
     get:
       summary: ''
@@ -644,7 +679,7 @@ paths:
               schema:
                 type: object
                 example:
-                  message: 'No query results for model [App\Models\User] perferendis'
+                  message: 'No query results for model [App\Models\User] voluptas'
                   exception: Symfony\Component\HttpKernel\Exception\NotFoundHttpException
                   file: /Users/bemax/dev/inter-sip/vendor/laravel/framework/src/Illuminate/Foundation/Exceptions/Handler.php
                   line: 378
@@ -1042,7 +1077,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: 'No query results for model [App\Models\User] perferendis'
+                    example: 'No query results for model [App\Models\User] voluptas'
                   exception:
                     type: string
                     example: Symfony\Component\HttpKernel\Exception\NotFoundHttpException
@@ -1455,7 +1490,7 @@ paths:
         in: path
         name: id
         description: 'The ID of the ofuser.'
-        example: perferendis
+        example: voluptas
         required: true
         schema:
           type: string

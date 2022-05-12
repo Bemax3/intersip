@@ -103,7 +103,7 @@
                         <a href="#contacts-POSTapi-contacts-store--userId--">Create Contact for user</a>
                     </li>
                                     <li class="tocify-item level-2" data-unique="contacts-POSTapi-contacts-update--userId--">
-                        <a href="#contacts-POSTapi-contacts-update--userId--">POST api/contacts/update/{userId?}</a>
+                        <a href="#contacts-POSTapi-contacts-update--userId--">Update Contact for user</a>
                     </li>
                                     <li class="tocify-item level-2" data-unique="contacts-POSTapi-contacts-delete--userId--">
                         <a href="#contacts-POSTapi-contacts-delete--userId--">Delete Contact for user</a>
@@ -576,14 +576,14 @@ fetch(url, {
 
 <div class="bash-example">
     <pre><code class="language-bash">curl --request GET \
-    --get "http://127.0.0.1:8000/api/contacts/saepe?properties=1" \
+    --get "http://127.0.0.1:8000/api/contacts/exercitationem?properties=1" \
     --header "Content-Type: application/json" \
     --header "Accept: application/json"</code></pre></div>
 
 
 <div class="javascript-example">
     <pre><code class="language-javascript">const url = new URL(
-    "http://127.0.0.1:8000/api/contacts/saepe"
+    "http://127.0.0.1:8000/api/contacts/exercitationem"
 );
 
 const params = {
@@ -705,7 +705,7 @@ fetch(url, {
                 <input type="text"
                name="id"
                data-endpoint="GETapi-contacts--id-"
-               value="saepe"
+               value="exercitationem"
                data-component="url" hidden>
     <br>
 <p>The ID of the contact.</p>
@@ -747,14 +747,14 @@ fetch(url, {
 
 <div class="bash-example">
     <pre><code class="language-bash">curl --request GET \
-    --get "http://127.0.0.1:8000/api/contacts/search/distinctio?properties=1" \
+    --get "http://127.0.0.1:8000/api/contacts/search/saepe?properties=1" \
     --header "Content-Type: application/json" \
     --header "Accept: application/json"</code></pre></div>
 
 
 <div class="javascript-example">
     <pre><code class="language-javascript">const url = new URL(
-    "http://127.0.0.1:8000/api/contacts/search/distinctio"
+    "http://127.0.0.1:8000/api/contacts/search/saepe"
 );
 
 const params = {
@@ -878,7 +878,7 @@ fetch(url, {
                 <input type="text"
                name="keywords"
                data-endpoint="GETapi-contacts-search--keywords-"
-               value="distinctio"
+               value="saepe"
                data-component="url" hidden>
     <br>
 
@@ -921,7 +921,7 @@ fetch(url, {
 
 <div class="bash-example">
     <pre><code class="language-bash">curl --request POST \
-    "http://127.0.0.1:8000/api/contacts/search/aliquid?properties=1" \
+    "http://127.0.0.1:8000/api/contacts/search/aut?properties=1" \
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --data "{
@@ -932,7 +932,7 @@ fetch(url, {
 
 <div class="javascript-example">
     <pre><code class="language-javascript">const url = new URL(
-    "http://127.0.0.1:8000/api/contacts/search/aliquid"
+    "http://127.0.0.1:8000/api/contacts/search/aut"
 );
 
 const params = {
@@ -1087,7 +1087,7 @@ fetch(url, {
                 <input type="text"
                name="userId"
                data-endpoint="POSTapi-contacts-search--userId--"
-               value="aliquid"
+               value="aut"
                data-component="url" hidden>
     <br>
 
@@ -1141,19 +1141,19 @@ fetch(url, {
 
 <div class="bash-example">
     <pre><code class="language-bash">curl --request POST \
-    "http://127.0.0.1:8000/api/contacts/store/autem" \
+    "http://127.0.0.1:8000/api/contacts/store/in" \
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --data "{
     \"number\": \"1001\",
-    \"props\": \"soluta\"
+    \"props\": \"sequi\"
 }"
 </code></pre></div>
 
 
 <div class="javascript-example">
     <pre><code class="language-javascript">const url = new URL(
-    "http://127.0.0.1:8000/api/contacts/store/autem"
+    "http://127.0.0.1:8000/api/contacts/store/in"
 );
 
 const headers = {
@@ -1163,7 +1163,7 @@ const headers = {
 
 let body = {
     "number": "1001",
-    "props": "soluta"
+    "props": "sequi"
 };
 
 fetch(url, {
@@ -1273,7 +1273,7 @@ fetch(url, {
                 <input type="text"
                name="userId"
                data-endpoint="POSTapi-contacts-store--userId--"
-               value="autem"
+               value="in"
                data-component="url" hidden>
     <br>
 
@@ -1294,16 +1294,17 @@ fetch(url, {
                 <input type="text"
                name="props"
                data-endpoint="POSTapi-contacts-store--userId--"
-               value="soluta"
+               value="sequi"
                data-component="body" hidden>
     <br>
 <p>optional Props of the user.</p>
         </p>
         </form>
 
-            <h2 id="contacts-POSTapi-contacts-update--userId--">POST api/contacts/update/{userId?}</h2>
+            <h2 id="contacts-POSTapi-contacts-update--userId--">Update Contact for user</h2>
 
 <p>
+<small class="badge badge-darkred">requires authentication</small>
 </p>
 
 
@@ -1314,14 +1315,19 @@ fetch(url, {
 
 <div class="bash-example">
     <pre><code class="language-bash">curl --request POST \
-    "http://127.0.0.1:8000/api/contacts/update/et" \
+    "http://127.0.0.1:8000/api/contacts/update/adipisci" \
     --header "Content-Type: application/json" \
-    --header "Accept: application/json"</code></pre></div>
+    --header "Accept: application/json" \
+    --data "{
+    \"number\": \"1001\",
+    \"props\": \"minima\"
+}"
+</code></pre></div>
 
 
 <div class="javascript-example">
     <pre><code class="language-javascript">const url = new URL(
-    "http://127.0.0.1:8000/api/contacts/update/et"
+    "http://127.0.0.1:8000/api/contacts/update/adipisci"
 );
 
 const headers = {
@@ -1329,15 +1335,65 @@ const headers = {
     "Accept": "application/json",
 };
 
+let body = {
+    "number": "1001",
+    "props": "minima"
+};
+
 fetch(url, {
     method: "POST",
     headers,
+    body: JSON.stringify(body),
 }).then(response =&gt; response.json());</code></pre></div>
 
 </span>
 
 <span id="example-responses-POSTapi-contacts-update--userId--">
-</span>
+            <blockquote>
+            <p>Example response (200):</p>
+        </blockquote>
+                <pre>
+
+<code class="language-json">{
+ {
+     &quot;country_id&quot;: country_id,
+     &quot;contact_phone_number&quot;: &quot;phone&quot;,
+     &quot;created_by&quot;: user_id,
+     &quot;contact_list_id&quot;: list_id,
+     &quot;updated_at&quot;: &quot;2022-05-11T22:13:28.000000Z&quot;,
+     &quot;created_at&quot;: &quot;2022-05-11T22:13:28.000000Z&quot;,
+     &quot;id&quot;: id
+}
+}</code>
+ </pre>
+            <blockquote>
+            <p>Example response (401):</p>
+        </blockquote>
+                <pre>
+
+<code class="language-json">{
+    &quot;message&quot;: &quot;Unauthenticated.&quot;
+}</code>
+ </pre>
+            <blockquote>
+            <p>Example response (401):</p>
+        </blockquote>
+                <pre>
+
+<code class="language-json">{
+    &quot;message&quot;: &quot;Missing Body param Number.&quot;
+}</code>
+ </pre>
+            <blockquote>
+            <p>Example response (401):</p>
+        </blockquote>
+                <pre>
+
+<code class="language-json">{
+    &quot;message&quot;: &quot;Using Wrong Property Names.&quot;
+}</code>
+ </pre>
+    </span>
 <span id="execution-results-POSTapi-contacts-update--userId--" hidden>
     <blockquote>Received response<span
                 id="execution-response-status-POSTapi-contacts-update--userId--"></span>:
@@ -1350,7 +1406,7 @@ fetch(url, {
 </span>
 <form id="form-POSTapi-contacts-update--userId--" data-method="POST"
       data-path="api/contacts/update/{userId?}"
-      data-authed="0"
+      data-authed="1"
       data-hasfiles="0"
       data-isarraybody="0"
       data-headers='{"Content-Type":"application\/json","Accept":"application\/json"}'
@@ -1377,18 +1433,47 @@ fetch(url, {
             <small class="badge badge-black">POST</small>
             <b><code>api/contacts/update/{userId?}</code></b>
         </p>
-                    <h4 class="fancy-heading-panel"><b>URL Parameters</b></h4>
+                <p>
+            <label id="auth-POSTapi-contacts-update--userId--" hidden>Authorization header:
+                <b><code>Bearer </code></b><input type="text"
+                                                                name="Authorization"
+                                                                data-prefix="Bearer "
+                                                                data-endpoint="POSTapi-contacts-update--userId--"
+                                                                data-component="header"></label>
+        </p>
+                <h4 class="fancy-heading-panel"><b>URL Parameters</b></h4>
                     <p>
                 <b><code>userId</code></b>&nbsp;&nbsp;<small>string</small>     <i>optional</i> &nbsp;
                 <input type="text"
                name="userId"
                data-endpoint="POSTapi-contacts-update--userId--"
-               value="et"
+               value="adipisci"
                data-component="url" hidden>
     <br>
 
             </p>
-                    </form>
+                            <h4 class="fancy-heading-panel"><b>Body Parameters</b></h4>
+        <p>
+            <b><code>number</code></b>&nbsp;&nbsp;<small>string</small>  &nbsp;
+                <input type="text"
+               name="number"
+               data-endpoint="POSTapi-contacts-update--userId--"
+               value="1001"
+               data-component="body" hidden>
+    <br>
+<p>Number to update.</p>
+        </p>
+                <p>
+            <b><code>props</code></b>&nbsp;&nbsp;<small>json</small>     <i>optional</i> &nbsp;
+                <input type="text"
+               name="props"
+               data-endpoint="POSTapi-contacts-update--userId--"
+               value="minima"
+               data-component="body" hidden>
+    <br>
+<p>optional Props of the user.</p>
+        </p>
+        </form>
 
             <h2 id="contacts-POSTapi-contacts-delete--userId--">Delete Contact for user</h2>
 
@@ -1404,7 +1489,7 @@ fetch(url, {
 
 <div class="bash-example">
     <pre><code class="language-bash">curl --request POST \
-    "http://127.0.0.1:8000/api/contacts/delete/ea" \
+    "http://127.0.0.1:8000/api/contacts/delete/qui" \
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --data "{
@@ -1415,7 +1500,7 @@ fetch(url, {
 
 <div class="javascript-example">
     <pre><code class="language-javascript">const url = new URL(
-    "http://127.0.0.1:8000/api/contacts/delete/ea"
+    "http://127.0.0.1:8000/api/contacts/delete/qui"
 );
 
 const headers = {
@@ -1517,7 +1602,7 @@ fetch(url, {
                 <input type="text"
                name="userId"
                data-endpoint="POSTapi-contacts-delete--userId--"
-               value="ea"
+               value="qui"
                data-component="url" hidden>
     <br>
 
@@ -1549,14 +1634,14 @@ fetch(url, {
 
 <div class="bash-example">
     <pre><code class="language-bash">curl --request GET \
-    --get "http://127.0.0.1:8000/api/contacts/ofuser/ullam?properties=1" \
+    --get "http://127.0.0.1:8000/api/contacts/ofuser/voluptatem?properties=1" \
     --header "Content-Type: application/json" \
     --header "Accept: application/json"</code></pre></div>
 
 
 <div class="javascript-example">
     <pre><code class="language-javascript">const url = new URL(
-    "http://127.0.0.1:8000/api/contacts/ofuser/ullam"
+    "http://127.0.0.1:8000/api/contacts/ofuser/voluptatem"
 );
 
 const params = {
@@ -1697,7 +1782,7 @@ fetch(url, {
                 <input type="text"
                name="userId"
                data-endpoint="GETapi-contacts-ofuser--userId--"
-               value="ullam"
+               value="voluptatem"
                data-component="url" hidden>
     <br>
 
@@ -1743,14 +1828,14 @@ fetch(url, {
 
 <div class="bash-example">
     <pre><code class="language-bash">curl --request GET \
-    --get "http://127.0.0.1:8000/api/contacts/properties/ofuser/perferendis" \
+    --get "http://127.0.0.1:8000/api/contacts/properties/ofuser/voluptas" \
     --header "Content-Type: application/json" \
     --header "Accept: application/json"</code></pre></div>
 
 
 <div class="javascript-example">
     <pre><code class="language-javascript">const url = new URL(
-    "http://127.0.0.1:8000/api/contacts/properties/ofuser/perferendis"
+    "http://127.0.0.1:8000/api/contacts/properties/ofuser/voluptas"
 );
 
 const headers = {
@@ -1782,7 +1867,7 @@ access-control-allow-origin: *
         </details>         <pre>
 
 <code class="language-json">{
-    &quot;message&quot;: &quot;No query results for model [App\\Models\\User] perferendis&quot;,
+    &quot;message&quot;: &quot;No query results for model [App\\Models\\User] voluptas&quot;,
     &quot;exception&quot;: &quot;Symfony\\Component\\HttpKernel\\Exception\\NotFoundHttpException&quot;,
     &quot;file&quot;: &quot;/Users/bemax/dev/inter-sip/vendor/laravel/framework/src/Illuminate/Foundation/Exceptions/Handler.php&quot;,
     &quot;line&quot;: 378,
@@ -2291,7 +2376,7 @@ access-control-allow-origin: *
                 <input type="text"
                name="id"
                data-endpoint="GETapi-contacts-properties-ofuser--id-"
-               value="perferendis"
+               value="voluptas"
                data-component="url" hidden>
     <br>
 <p>The ID of the ofuser.</p>

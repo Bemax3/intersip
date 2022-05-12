@@ -350,11 +350,12 @@ class ContactsController extends Controller
         else $user_id = $user;
         $created_by = Auth::user()->id;
         $data = json_decode($request->getContent());
+        if(!$data->number) return response(['message'=>'Missing Body param Number'],401);
         try {
             DB::beginTransaction();
             $user = User::findOrFail($user_id);
             $list_id = $user->lists()->first()->id;
-            if(!$data->number) return response(['message'=>'Missing Body param Number'],401);
+            
             $phone = $data->number;
             $phoneExist = Contact::query()->where('contact_list_id',$list_id)->where('contact_phone_number',$phone)->first();
             if(!$phoneExist) {   
@@ -363,10 +364,14 @@ class ContactsController extends Controller
                     'contact_phone_number' => $phone,
                     'created_by' => $created_by
                 ]);
+                $props = Property::query()->where('contact_list_id',$list_id)->get();
+                foreach ($props as $prop) {
+                    $new_contact->properties()->attach($prop->id,['value'=> '']);
+                }
                 if(array_key_exists('props',(array)$data))
                     foreach ($data->props as $key => $property) {
                         $prop = Property::query()->where('contact_list_id',$list_id)->whereRaw('lower(property_name) like (?)',strtolower($property->name))->first();
-                        $new_contact->properties()->attach($prop->id,['value'=>$property->value]);
+                        $new_contact->properties()->updateExistingPivot($prop->id,['value'=>$property->value]);
                     }
                 $new_contact->save();
                 DB::commit();
