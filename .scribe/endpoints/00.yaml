@@ -1,0 +1,90 @@
+name: Authentication
+description: |-
+
+  API endpoints for managing authentication
+endpoints:
+  -
+    httpMethods:
+      - POST
+    uri: api/authentication/login
+    metadata:
+      title: 'Log in the user.'
+      description: ''
+      authenticated: false
+      custom: []
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    queryParameters: []
+    bodyParameters:
+      user_mail:
+        name: user_mail
+        description: 'The email of the  user.'
+        required: true
+        example: testuser@example.com
+        type: string
+        custom: []
+      password:
+        name: password
+        description: 'The password of the  user.'
+        required: true
+        example: secret
+        type: string
+        custom: []
+    responses:
+      -
+        status: 200
+        content: |-
+          {
+             "user": {
+                "mail": "testuser@example.com",
+                 "name": "Test User",
+                 "number": "0000000000"
+             },
+             "token": "eyJ0eXa..."
+          }
+        headers: []
+        description: '200'
+      -
+        status: 401
+        content: |-
+          {
+              "message": "The provided credentials do not match our records",
+          }
+        headers: []
+        description: '401'
+    responseFields: []
+  -
+    httpMethods:
+      - POST
+    uri: api/authentication/logout
+    metadata:
+      title: 'Log Out The User'
+      description: ''
+      authenticated: true
+      custom: []
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    queryParameters: []
+    bodyParameters: []
+    responses:
+      -
+        status: 200
+        content: |-
+          {
+             "message" : "Successfully Logged Out"
+          }
+        headers: []
+        description: '200'
+      -
+        status: 401
+        content: |-
+          {
+            "message": "Unauthenticated."
+          }
+        headers: []
+        description: '401'
+    responseFields: []

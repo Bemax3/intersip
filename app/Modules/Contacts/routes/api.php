@@ -24,10 +24,10 @@ use Illuminate\Support\Facades\Route;
 Route::get('',[ContactsController::class,'getContacts']);
 Route::get('/{id}',[ContactsController::class,'getContactById']);
 Route::get('/search/{keywords}',[ContactsController::class,'search']);
-Route::get('/ofuser/{id}',[ContactsController::class,'getContactsOfUser']);
 Route::get('/properties/ofuser/{id}',[PropertiesController::class,'getPropsOfUser']);
 
 Route::group(['middleware' => ['auth:sanctum']],function() {
+    Route::get('/ofuser/{userId?}',[ContactsController::class,'getContactsOfUser']);
     Route::post('/search/{userId?}',[ContactsController::class,'searchForUser']);
     Route::post('/store/{userId?}',[ContactsController::class,'store']);
     Route::post('/update/{userId?}',[ContactsController::class,'update']);

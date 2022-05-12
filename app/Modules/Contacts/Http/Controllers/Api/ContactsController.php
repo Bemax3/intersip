@@ -14,15 +14,59 @@ use App\Modules\Contacts\Models\ContactProperty;
 use App\Modules\Contacts\Http\Resources\ContactsResource;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Support\Facades\Auth;
-use Laravel\Sanctum\PersonalAccessToken;
 
+/**
+ * @group Contacts 
+ *
+ * API endpoints for managing contacts
+ */
 class ContactsController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Get All the contacts.
      *
-     * @return \Illuminate\Http\Response
-     */
+     * @queryParam   properties   boolean  optional    Get Properties of contacts or not. Example: true
+     *
+     * @response {
+     * "data": [
+     *     {
+     *      "number": "00000000",
+     *      "country": {
+     *          "name": "Country",
+     *          "calling_code": "code",
+     *          "iso2": "iso"
+     *       },
+     *      "props": [
+     *         {
+     *             "prop1": "value1"
+     *         },
+     *         {
+     *             "prop2": "value2"
+     *         },
+     *         ...
+     *      ]
+     *      },
+     *      ...
+     * ]
+     * }
+     * 
+     * @response {
+     * "data" : [
+     *     {
+     *      "number": "00000000",
+     *      "country": {
+     *         "name": "Country",
+     *         "calling_code": "code",
+     *         "iso2": "iso"
+     *      }
+     *     },
+     *     ...
+     * ] 
+     * }
+     * @response {
+     *     "data": []
+     * }
+    */  
     public function getContacts()
     {
         return ContactsResource::collection(Cache::remember('contacts',60*60*24,function () {
@@ -30,11 +74,99 @@ class ContactsController extends Controller
         }));
         
     }
-
-    public function getContactById($id) {       
-        return new ContactsResource(Contact::findOrFail($id));
+    /**
+     * Get contact by Id.
+     *
+     * @queryParam   properties   boolean  optional    Get Properties of contacts or not. Example: true
+     *
+     * @response {
+     * "data" : [
+     *     {
+     *      "number": "00000000",
+     *      "country": {
+     *         "name": "Country",
+     *         "calling_code": "code",
+     *         "iso2": "iso"
+     *      },
+     *      "props": [
+     *         {
+     *             "prop1": "value1"
+     *         },
+     *         {
+     *             "prop2": "value2"
+     *         },
+     *         ...
+     *      ]
+     *     }
+     * ] 
+     * }
+     * 
+     * @response {  
+     * "data" : [
+     *     {
+     *      "number": "00000000",
+     *      "country": {
+     *         "name": "Country",
+     *         "calling_code": "code",
+     *         "iso2": "iso"
+     *      }
+     *     }
+     * ] 
+     * }
+     * @response 401{
+     *    { "message": "Contact Not Found"}
+     * }
+    */
+    public function getContactById($id) {
+        $contact = Contact::find($id);        
+        if($contact) return new ContactsResource($contact);
+        else return response(["message" => "Contact Not Found"],401);
     }
-
+    /**
+     * Search Contacts using number or properties
+     *
+     * @queryParam   properties   boolean  optional    Get Properties of contacts or not. Example: true
+     *
+     * @response {
+     * "data" : [
+     *     {
+     *      "number": "00000000",
+     *      "country": {
+     *         "name": "Country",
+     *         "calling_code": "code",
+     *         "iso2": "iso"
+     *      },
+     *      "props": [
+     *         {
+     *             "prop1": "value1"
+     *         },
+     *         {
+     *             "prop2": "value2"
+     *         },
+     *         ...
+     *      ]
+     *     },
+     *     ...
+     * ] 
+     * }
+     * 
+     * @response {  
+     * "data" : [
+     *     {
+     *      "number": "00000000",
+     *      "country": {
+     *         "name": "Country",
+     *         "calling_code": "code",
+     *         "iso2": "iso"
+     *      }
+     *     },
+     *     ...
+     * ] 
+     * }
+     * @response 401{
+     * { "data": [] } 
+     * }
+    */
     public function search($keywords) {
         return ContactsResource::collection(
             Contact::query()
@@ -45,12 +177,71 @@ class ContactsController extends Controller
                 ->get()
         );
     }
+
+     /**
+     * Search Contacts of a user using number or properties
+     *
+     * @bodyParam    keywords string required Keywords to search for. Example: 1001
+     * @queryParam   properties   boolean  optional    Get Properties of contacts or not. Example: true
+     *
+     * @authenticated
+     * 
+     * @response {
+     * "data" : [
+     *     {
+     *      "number": "00000000",
+     *      "country": {
+     *         "name": "Country",
+     *         "calling_code": "code",
+     *         "iso2": "iso"
+     *      },
+     *      "props": [
+     *         {
+     *             "prop1": "value1"
+     *         },
+     *         {
+     *             "prop2": "value2"
+     *         },
+     *         ...
+     *      ]
+     *     },
+     *     ...
+     * ] 
+     * }
+     * 
+     * @response {  
+     * "data" : [
+     *     {
+     *      "number": "00000000",
+     *      "country": {
+     *         "name": "Country",
+     *         "calling_code": "code",
+     *         "iso2": "iso"
+     *      }
+     *     },
+     *     ...
+     * ] 
+     * }
+     * 
+     * @response 401 {
+     * { "data": [] } 
+     * }
+     * 
+     * @response 401 {
+     * { "message":"Keywords missing in request body" } 
+     * }
+     * 
+     * @response 401
+     * {
+     *   "message": "Unauthenticated."
+     * }
+    */
     public function searchForUser(Request $request,$user=null) {
         if(!$user) $user_id = Auth::user()->id;
         else $user_id = $user;
         $data = json_decode($request->getContent());
         if(array_key_exists('keywords',(array)$data)) $keywords = $data->keywords;
-        else return response('Keywords missing in request body');
+        else return response(['message' => 'Keywords missing in request body'],401);
         $list_id = User::findOrFail($user_id)->lists()->first()->id;
         return ContactsResource::collection(
             Contact::query()
@@ -62,12 +253,98 @@ class ContactsController extends Controller
                 ->get()
         );
     }
-    
-    public function getContactsOfUser($id) {
-        $list = User::findOrFail($id)->lists()->first();
+    /**
+     * Get All Contacts of a user
+     *
+     * @authenticated
+     *
+     * @queryParam   properties   boolean  optional    Get Properties of contacts or not. Example: true
+     * 
+     * @response {
+     * "data" : [
+     *     {
+     *      "number": "00000000",
+     *      "country": {
+     *         "name": "Country",
+     *         "calling_code": "code",
+     *         "iso2": "iso"
+     *      },
+     *      "props": [
+     *         {
+     *             "prop1": "value1"
+     *         },
+     *         {
+     *             "prop2": "value2"
+     *         },
+     *         ...
+     *      ]
+     *     },
+     *     ...
+     * ] 
+     * }
+     * 
+     * @response {  
+     * "data" : [
+     *     {
+     *      "number": "00000000",
+     *      "country": {
+     *         "name": "Country",
+     *         "calling_code": "code",
+     *         "iso2": "iso"
+     *      }
+     *     },
+     *     ...
+     * ] 
+     * }
+     * 
+     * @response 401 {
+     * { "data": [] } 
+     * }
+     * 
+     * 
+     * @response 401
+     * {
+     *   "message": "Unauthenticated."
+     * }
+    */
+    public function getContactsOfUser($user_id=null) {
+        if(!$user_id) $user_id = Auth::user()->id;
+        else $user_id = $user_id;
+        $list = User::findOrFail($user_id)->lists()->first();
         return ContactsResource::collection(Contact::query()->where('contact_list_id',$list->id)->get());
     }
-
+    /**
+     * Create Contact for user
+     * @bodyParam number string required Number to create. Example: 1001
+     * @bodyParam props json optional Props of the user.
+     * @authenticated
+     *
+     * @response {
+     *  {
+     *      "country_id": country_id,
+     *      "contact_phone_number": "phone",
+     *      "created_by": user_id,
+     *      "contact_list_id": list_id,
+     *      "updated_at": "2022-05-11T22:13:28.000000Z",
+     *      "created_at": "2022-05-11T22:13:28.000000Z",
+     *      "id": id
+     * }
+     * }
+     * 
+     * @response 401
+     * {
+     *   "message": "Unauthenticated."
+     * }
+     * 
+     * @response 401
+     * {
+     *   "message": "Missing Body param Number."
+     * }
+     * @response 401
+     * {
+     *   "message": "Using Wrong Property Names."
+     * }
+    */
     public function store(Request $request,$user=null) {
         if(!$user) $user_id = Auth::user()->id;
         else $user_id = $user;
@@ -77,7 +354,7 @@ class ContactsController extends Controller
             DB::beginTransaction();
             $user = User::findOrFail($user_id);
             $list_id = $user->lists()->first()->id;
-            if(!$data->number) return response('Phone Number can\'t be Empty');
+            if(!$data->number) return response(['message'=>'Missing Body param Number'],401);
             $phone = $data->number;
             $phoneExist = Contact::query()->where('contact_list_id',$list_id)->where('contact_phone_number',$phone)->first();
             if(!$phoneExist) {   
@@ -107,11 +384,42 @@ class ContactsController extends Controller
                 return response($old_contact,200);
             }
         } catch (\Exception $th) {
-            return response('Error : Using Wrong Property Names ',400);
+            return response(['message' => 'Using Wrong Property Names'],400);
             DB::rollBack();
         }
     }
-
+   /**
+     * Update Contact for user
+     * @bodyParam number string required Number to update. Example: 1001
+     * @bodyParam props json optional Props of the user.
+     * @authenticated
+     *
+     * @response {
+     *  {
+     *      "country_id": country_id,
+     *      "contact_phone_number": "phone",
+     *      "created_by": user_id,
+     *      "contact_list_id": list_id,
+     *      "updated_at": "2022-05-11T22:13:28.000000Z",
+     *      "created_at": "2022-05-11T22:13:28.000000Z",
+     *      "id": id
+     * }
+     * }
+     * 
+     * @response 401
+     * {
+     *   "message": "Unauthenticated."
+     * }
+     * 
+     * @response 401
+     * {
+     *   "message": "Missing Body param Number."
+     * }
+     * @response 401
+     * {
+     *   "message": "Using Wrong Property Names."
+     * }
+    */
     public function update(Request $request,$user=null) {
         $data = json_decode($request->getContent());
         if(!$data->number) return response('Phone Number can\'t be Empty');
@@ -141,6 +449,28 @@ class ContactsController extends Controller
             return response('Error :' . $th,400);
         }
     }
+
+    /**
+     * Delete Contact for user
+     * @bodyParam number string required Number to delete. Example: 1001
+     * 
+     * @authenticated
+     *
+     * @response 401
+     * {
+     *   "message": "Deleted."
+     * }
+     * 
+     * @response 401
+     * {
+     *   "message": "Unauthenticated."
+     * }
+     * 
+     * @response 401
+     * {
+     *   "message": "Missing Body param Number."
+     * }
+    */
     public function destroy(Request $request,$user=null){
         $data = json_decode($request->getContent());        
         try {
@@ -149,13 +479,13 @@ class ContactsController extends Controller
             else $user_id = $user;
             $user = User::findOrFail($user_id);
             $list_id = $user->lists()->first()->id;
-            if(!array_key_exists('number',(array)$data)) return response('Number is required',400);
+            if(!array_key_exists('number',(array)$data)) return response(['message'=>'Number is required'],400);
             $phone = $data->number;
             $contact = Contact::query()->where('contact_phone_number',$phone)->where('contact_list_id',$list_id)->first();
             if($contact) $contact->delete();
             else return response('Contact Not Found',400);
             DB::commit();
-            return response('Deleted',200);
+            return response(['message'=>'Deleted'],200);
         } catch (\Throwable $th) {
             DB::rollBack();
             return response('Error While Deleting : '. $th,400);
